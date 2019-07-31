@@ -15,11 +15,30 @@ const myRequest = (url, cb) => {
     }
 
     if(error) {
-      console.error(error.message);
+      cb(error);
       res.resume();
       return;
     }
-  });
+
+    res.setEncoding('utf8');
+
+    let rawData = '';
+    res.on('data', (chunk) => { rawData += chunk; });
+    res.on('end', () => {
+      try {
+        const parsedData = JSON.parse(rawData);
+        let response = {};
+        response.statusCode = 200;
+        response.body = parsedData;
+        console.log(response);
+        cb(null, response); 
+      } catch(e) {
+        cb(e);
+      }
+    })
+  }).on('error', (e) => {
+    cb(e);
+  })
 };
 
 module.exports = myRequest;
